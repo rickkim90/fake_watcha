@@ -17,7 +17,7 @@
          <% @movies.each do |movie| %>
            <div class="card">
              <%= link_to movie_path(movie) do %>
-             <img src="<%= movie.image_url %>" alt="Card image cap">
+             <img src="<%= movie.photo_url %>" alt="Card image cap">
              <p class="card-text"><%= truncate movie.desc, length: 50, omission: "..." %></p>
              <% end %>
            </div>
