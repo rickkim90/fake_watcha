@@ -1,5 +1,8 @@
 source 'https://rubygems.org'
 
+gem 'aws-sdk-rails'
+gem "mini_magick"
+gem "fog-aws"
 gem 'rails_12factor', group: :production
 gem 'pg', group: :production
 gem 'cancancan', '~> 2.0'
