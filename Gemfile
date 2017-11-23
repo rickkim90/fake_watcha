@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+# aws_sdk 추가
 gem 'aws-sdk-rails'
 gem "mini_magick"
 gem "fog-aws"
