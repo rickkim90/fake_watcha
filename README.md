@@ -354,7 +354,7 @@ reveiw.movie
 	+ 특정 영화에 있는 모든 리뷰들을 돌면서 하나씩 더한다
 	1. 특정 영화에 담긴 리뷰들을 다 불러온다.
 	2. 리뷰를 각각 돌면서(each) rating에 담겨 있는 점수들을 @sum 에 더한다
-	3. 누적된 값을 전체 리뷰수로 나	눠준다
+	3. 누적된 값을 전체 리뷰수로 나눠준다
 	4. @avg 에 넣어준다
 @avg =
 
@@ -375,3 +375,506 @@ def show
   <%= @movie.reviews.average(:rating) %>
 </p>
 ```
+
+##### rails g migration add_role_to_users role
+
+rake db:migrate
+
+
+
+C:\Users\student\project\real_board\app\models\user.rb
+
+admin인지 아닌지 구분하는 def 함수
+
+User 클래스에서는 접근이 가능
+
+
+
+user = User.find_by(role: "admin")
+
+
+
+```ruby
+def admin?
+  if role == "admin"
+    true
+  else
+    false
+  end
+end
+```
+
+
+
+user확인
+
+pry(main)> rails c
+
+pry(main)> User.all
+
+
+
+User생성
+
+pry(main)> User.create email: "admin@asdf.com", password: "123123", password_confirmation: "123123", role: "admin"
+
+
+
+User.create email: "regular@asdf.com", password: "123123", password_confirmation: "123123", role: "regular"
+
+
+
+##### Whitelisting
+
+= 다 못오고 올수있는거만 허용, lock up authorization
+
+
+
+##### 로그인을 해야만 화면이 보이도록
+
+C:\Users\student\project\real_board\app\controllers\application_controller.rb
+
+
+
+##### authentication & authorization
+
+C:\Users\student\project\real_board\app\views\movies\index.html.erb
+
+```ruby
+<% if current_user.admin? %>
+	<td><%= link_to 'Edit', edit_movie_path(movie) %></td>
+	<td><%= link_to 'Destroy', movie, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+<% else %>
+	<td><%= link_to 'Show', movie %></td>
+<% end %>
+```
+
+
+
+
+
+URL로 접근 못하게
+
+```ruby
+def destroy
+  @movie.destroy if current_user.admin?
+
+OR
+
+private 안에
+
+def check_admin
+ unless current_user.admin?
+   redirect_to redirect_path
+end
+
+before_action :check_admin, only: [:edit, :update, :destroy]
+```
+
+
+
+##### gem cancancan
+
+https://github.com/CanCanCommunity/cancancan
+
+rails g  cancan:ability
+
+C:\Users\student\project\real_board\app\models\ability.rb
+
+
+
+comment-out
+
+````ruby
+user ||= User.new # guest user (not logged in)
+if user.admin?
+  can :manage, Movie
+else
+  can :read, Movie
+end
+````
+
+
+
+C:\Users\student\project\real_board\app\controllers\movies_controller.rb
+
+```ruby
+load_and_authorize_resource
+```
+
+
+
+
+
+### Heroku 배포
+
+https://devcenter.heroku.com/articles/getting-started-with-rails4
+
+1. vagrant에 heroku 설치
+
+##### [Heroku Toolbelt](https://toolbelt.heroku.com/)
+
++ https://devcenter.heroku.com/articles/heroku-cli
+
+2. heroku login
+
+3. gemfile => gem 'sqlite3', group: :development 수정
+
+           => gem 'rails_12factor', group: :production 추가
+
+   ​                => gem 'pg', group: :production 추가
+
+   sudo apt-get install libpq-dev 추가
+
+4. heroku create
+
+5. git push heroku master
+
+6. heroku run rake db:migrate
+
+
+
+User 생성
+
+C:\Users\student\project\real_board\db\seeds.rb
+
+```ruby
+User.create([
+  {
+    email: "admin@asdf.com",
+    password: "123123",
+    password_confirmation: "123123",
+    role: "admin"
+},
+ {
+   email: "yangmin@asdf.com",
+   password: "123123",
+   password_confirmation: "123123",
+   role: "regular"
+ }
+])
+```
+
+
+
+### admin 페이지
+
+C:\Users\student\project\real_board\app\controllers\
+
+생성 admin\admin_application_controller.rb
+
+
+
+상속
+
+admin모듈 추가
+
+
+
+C:\Users\student\project\real_board\app\controllers\admin\users_controller.rb
+
+모든 유저들을 볼수 있는 파일 생성
+
+Admin에서만 사용할거라 Admin:: 추가
+
+
+
+C:\Users\student\project\real_board\app\views\admin\users\index.erb
+
+생성
+
+
+
+rake routes | grep admin
+
+### AWS 관리
+
+
+
+IAM user
+
+
+
+Redactor
+
+ckeditor
+
+trix
+
+
+
+##### text editor되는 게시판
+
+
+
+게시판관리
+
+post라는 게시판
+
+rails g scaffold post title content:text photo user:references
+
+
+
+```ruby
+<%= f.hidden_field :user_id, value: current_user.id %>
+```
+
+
+이미지를 s3에 업로드
+
+버킷 만들기
+
+
+
+개요 - 폴더만들기
+
+
+
+s3사용을 위한 gemfile 추가
+
+Using Amazon S3
+
+https://github.com/carrierwaveuploader/carrierwave
+
+이미지 설정 자동화
+
+https://github.com/minimagick/minimagick
+
+
+
+C:\Users\student\project\real_board\config\initializers\carrierwave.rb
+
+생성 후 creditial 및 기타 추가
+
+
+
+secret key id access key
+
+cd ~
+
+vi .bashrc
+
+export AWS_ID="키"
+
+export AWS_SECRET="비번"
+
+source .bashrc
+
+
+
+ENV['AWS_ID']
+
+ENV['AWS_SECRET']
+
+환경변수에 추가
+
+fog_directory = bucket name
+
+
+
+aws region
+
+http://docs.aws.amazon.com/ko_kr/general/latest/gr/rande.html
+
+
+
+C:\Users\student\project\real_board\app\uploaders\image_uploader.rb
+
+storage :fog
+
+
+
+지금 user중에 posts를 생성
+
+
+
+#### minimagick
+
+https://github.com/minimagick/minimagick
+
+gem "mini_magick"
+
+
+
+https://www.howtoinstall.co/en/ubuntu/xenial/imagemagick
+
+
+
+C:\Users\student\project\real_board\app\uploaders\image_uploader.rb
+
+```ruby
+include CarrierWave::MiniMagick
+
+version :thumb do
+  process resize_to_fit: [50, 50]
+end
+
+version :small do
+  process resize_to_fit: [200, 200]
+end
+
+fill옵션은 fit하게 200 x 200
+version :fill do
+  process resize_to_fill: [200, 200]
+end
+
+```
+
+
+
+##### bootstrap
+
+rails g devise:views
+
+
+
+C:\Users\student\project\real_board\app\views\devise\sessions\new.html.erb
+
+로그인 페이지 변경
+
+
+
+```ruby
+<%= stylesheet_link_tag "https://getbootstrap.com/docs/4.0/examples/signin/signin.css" %>
+
+<div class="container">
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: {class: "form-signin"}) do |f| %>
+    <h2 class="form-signin-heading"><%= t(".sign_in") %></h2>
+      <%= f.email_field :email, required: false, autofocus: true, class: "form-control"%>
+      <%= f.password_field :password, required: false, class: "form-control"%>
+      <%= f.submit t(".sign_in"), class: "btn btn-primary btn-block"%>
+    <%= render "devise/shared/links" %>
+  <% end %>
+</div>
+```
+
+
+
+### 이메일 비밁번호 잊어버렸을때  요청메일 send
+
+##### SES Home
+
+서울과 가까운 오레곤
+
+https://us-west-2.console.aws.amazon.com/ses/home?region=us-west-2#
+
+1. Email Addresses
+
++ verify email
+
+2. sending statistics
+3. aws sdk rails
+
++ https://github.com/aws/aws-sdk-rails
++ C:\Users\student\project\real_board\config\initializers\aws_sdk.rb
+
+​        코드 추가
+
++ ```ruby
+  creds = Aws::Credentials.new(ENV['AWS_ID'], ENV['AWS_SECRET'])
+  Aws::Rails.add_action_mailer_delivery_method(:aws_sdk, credentials: creds, region: 'us-west-2')
+  ```
+
+4. C:\Users\student\project\real_board\config\initializers\devise.rb
+   + 인증받은 메일을 추가
+
++ ```ruby
+  config.mailer_sender = 'rickkim90@gmail.com'
+  ```
+
+5. C:\Users\student\project\real_board\config\application.rb
+
+   추가
+
+   ```ruby
+   config.action_mailer.delivery_method = :aws_sdk
+   ```
+
+6. Request a Sending Lmit increase = 다른 사용자들도 사용
+
+   + Limit = Desired Daily Sending Quota
+
+   + Limit value = 1000
+
+   + System Notifications
+
+   + https://github.com/rickkim90
+
+   + Yes
+
+   + Yes
+
+   + Yes
+
+   + I'm taking a programming course based on the Ruby on Rails for my school tasks. During the course we have a section in which we practice using the mailer service. The teacher recommended the SES Management as a provider so i need to increase the limit in order to test the functionality. Thank you very much..
+
+     ​
+
+   #### Lightsail = 가상머신
+
+   ##### https://lightsail.aws.amazon.com/ls/webapp/create/instance?region=ap-northeast-1
+
+   앱 os -> ubuntu 생성
+
+   ubuntu 접속하여 rails 설치
+
+https://gorails.com/setup/ubuntu/16.04
+
+
+
+rbenv version
+
+rbenv을 통해 2.3.5 설치
+
+global 전역 또한 2.3.5
+
+gem install bundler
+
+rbenv rehash
+
+
+
+##### installing rails 4.2.9
+
+
+
+ssh-keygen -t rsa -b 4096 -C "rickkim90@gmail.com"
+
+cat id_rsa.pub
+
+
+
+SSH and GPG keys -> SSH에 추가
+
+
+
+git clone https://github.com/rickkim90/fake_watcha.git
+
+cd 후 bundle
+
+
+
+13.114.245.222
+
+관리 -> 네트워킹 -> 방화벽 포트 3000 추가
+
+
+
+#### Texteditor 추가
+
+https://github.com/maclover7/trix
+
+C:\Users\student\project\real_board\app\views\posts\_form.html.erb
+
+trix_editor로 변경
+
+```ruby
+<div class="field">
+  <%= f.label :content %><br>
+  <%= f.trix_editor :content %>
+</div>
+```
+
+
+
+C:\Users\student\project\real_board\app\views\posts\index.html.erb
